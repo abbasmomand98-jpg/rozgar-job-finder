@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en" id="rootEl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rozgar — Job Finder for Pakistan</title>
+<style>
+  :root{
+    --emerald:#059669; --emerald-dark:#047857; --emerald-soft:#ecfdf5;
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f9fafb; --card:#ffffff;
+    --amber:#d97706; --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,"Noto Nastaliq Urdu",sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.6}
+  body.urdu{direction:rtl; font-family:"Noto Nastaliq Urdu","Segoe UI",system-ui,sans-serif}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 20px}
+  header.top{position:sticky; top:0; z-index:50; background:#fff; border-bottom:1px solid var(--line)}
+  .top-inner{display:flex; align-items:center; justify-content:space-between; padding:14px 0}
+  .brand{display:flex; align-items:center; gap:10px; font-size:24px; font-weight:800; color:var(--emerald-dark)}
+  .brand .badge-dot{width:26px; height:26px; border-radius:50%; background:var(--emerald);
+    color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:15px}
+  nav.tabs{display:flex; gap:8px}
+  nav.tabs button{border:1px solid var(--line); background:#fff; padding:9px 18px; border-radius:999px;
+    font-size:14px; cursor:pointer; color:var(--ink)}
+  nav.tabs button.active{background:var(--emerald); border-color:var(--emerald); color:#fff; font-weight:600}
+  .lang-toggle{border:1px solid var(--line); background:#fff; border-radius:999px; padding:8px 14px;
+    cursor:pointer; font-size:14px; font-weight:600; color:var(--emerald-dark)}
+  .hero{background:linear-gradient(135deg,#059669,#065f46); color:#fff; padding:52px 0 40px; margin-bottom:28px}
+  .hero h1{font-size:38px; margin-bottom:8px; letter-spacing:-.5px}
+  .hero p{opacity:.92; font-size:17px; max-width:640px}
+  .trust{display:flex; gap:18px; margin-top:18px; flex-wrap:wrap; font-size:14px}
+  .trust span{background:rgba(255,255,255,.16); padding:7px 14px; border-radius:999px}
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px; margin-bottom:22px; box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .search-row{display:flex; gap:10px; margin-bottom:16px}
+  .search-row input{flex:1; padding:13px 16px; border:1.5px solid var(--line); border-radius:12px; font-size:15px}
+  .search-row input:focus{outline:none; border-color:var(--emerald)}
+  .chip-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px}
+  .chip-row .lbl{width:100%; font-size:12px; text-transform:uppercase; letter-spacing:.6px;
+    color:var(--muted); font-weight:700; margin-bottom:2px}
+  .chip{border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:8px 16px;
+    font-size:14px; cursor:pointer; transition:.15s}
+  .chip:hover{border-color:var(--emerald)}
+  .chip.active{background:var(--emerald); border-color:var(--emerald); color:#fff; font-weight:600}
+  .results-meta{display:flex; justify-content:space-between; align-items:center; margin:6px 0 14px}
+  .results-meta h2{font-size:20px}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px}
+  .job{background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:20px; display:flex; flex-direction:column; gap:10px; transition:.15s}
+  .job:hover{box-shadow:0 6px 20px rgba(5,150,105,.10); transform:translateY(-2px)}
+  .job .co{font-size:13px; color:var(--muted)}
+  .job h3{font-size:18px; line-height:1.35}
+  .vbadge{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700;
+    color:var(--emerald-dark); background:var(--emerald-soft); padding:4px 10px; border-radius:999px}
+  .salary{font-size:20px; font-weight:800; color:var(--emerald-dark)}
+  .salary small{font-size:12px; font-weight:500; color:var(--muted)}
+  .tags{display:flex; gap:6px; flex-wrap:wrap}
+  .tag{font-size:12px; background:#f3f4f6; border-radius:6px; padding:4px 10px; color:var(--ink)}
+  .job .actions{display:flex; gap:8px; margin-top:6px}
+  .btn{border:none; border-radius:10px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer}
+  .btn-primary{background:var(--emerald); color:#fff}
+  .btn-primary:hover{background:var(--emerald-dark)}
+  .btn-ghost{background:#fff; border:1.5px solid var(--line); color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--emerald)}
+  .btn-block{width:100%}
+  /* modal */
+  .overlay{position:fixed; inset:0; background:rgba(17,24,39,.55); display:none;
+    align-items:flex-start; justify-content:center; z-index:100; padding:40px 16px; overflow:auto}
+  .overlay.open{display:flex}
+  .modal{background:#fff; border-radius:18px; max-width:640px; width:100%; padding:30px; position:relative}
+  .modal .x{position:absolute; top:14px; inset-inline-end:16px; border:none; background:none;
+    font-size:22px; cursor:pointer; color:var(--muted)}
+  .modal h2{font-size:24px; margin-bottom:4px}
+  .modal .sub{color:var(--muted); font-size:14px; margin-bottom:16px}
+  .req{margin:14px 0; padding-inline-start:20px}
+  .req li{margin-bottom:6px; font-size:15px}
+  .scam-link{background:none; border:none; color:var(--muted); font-size:13px; cursor:pointer;
+    text-decoration:underline; margin-top:10px; display:block; width:100%; text-align:center}
+  .scam-link:hover{color:#b91c1c}
+  .steps{display:flex; gap:6px; margin:18px 0}
+  .step{flex:1; text-align:center; font-size:12px; color:var(--muted); padding-top:10px; position:relative}
+  .step::before{content:""; position:absolute; top:0; left:0; right:0; height:4px; border-radius:4px; background:var(--line)}
+  .step.done{color:var(--emerald-dark); font-weight:700}
+  .step.done::before{background:var(--emerald)}
+  .field{margin-bottom:14px}
+  .field label{display:block; font-size:13px; font-weight:600; margin-bottom:6px}
+  .field input,.field select,.field textarea{width:100%; padding:12px 14px; border:1.5px solid var(--line);
+    border-radius:10px; font-size:15px; font-family:inherit}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none; border-color:var(--emerald)}
+  .wizard-nav{display:flex; justify-content:space-between; margin-top:20px}
+  .review-box{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:16px; font-size:15px}
+  .review-box div{margin-bottom:8px}
+  /* tracker */
+  .pipeline{display:flex; align-items:center; margin:22px 0 8px}
+  .pstage{flex:1; text-align:center; position:relative; font-size:13px; color:var(--muted)}
+  .pstage .dot{width:34px; height:34px; border-radius:50%; background:#e5e7eb; color:#fff;
+    display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-weight:800}
+  .pstage.done{color:var(--emerald-dark); font-weight:700}
+  .pstage.done .dot{background:var(--emerald)}
+  .pstage.current{color:var(--emerald-dark); font-weight:800}
+  .pstage.current .dot{background:#fff; border:3px solid var(--emerald); color:var(--emerald)}
+  .pstage::before{content:""; position:absolute; top:17px; inset-inline-start:-50%; width:100%;
+    height:3px; background:#e5e7eb; z-index:-1}
+  .pstage:first-child::before{display:none}
+  .pstage.done::before,.pstage.current::before{background:var(--emerald)}
+  .app-card{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:20px; margin-bottom:14px}
+  .app-card .head{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap}
+  .status-pill{font-size:12px; font-weight:700; padding:5px 12px; border-radius:999px; background:var(--emerald-soft); color:var(--emerald-dark)}
+  .tips{background:#fffbeb; border:1px solid #fde68a; border-radius:var(--radius); padding:20px; margin-top:18px}
+  .tips h3{color:#92400e; margin-bottom:8px}
+  .tips li{margin-bottom:6px; margin-inline-start:18px; font-size:15px}
+  .empty{text-align:center; padding:50px 20px; color:var(--muted)}
+  .empty .big{font-size:46px; margin-bottom:10px}
+  /* toast */
+  #toast{position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(120px);
+    background:#111827; color:#fff; padding:14px 24px; border-radius:12px; font-size:15px;
+    transition:transform .3s; z-index:200; max-width:90vw; text-align:center}
+  #toast.show{transform:translateX(-50%) translateY(0)}
+  footer{margin:40px 0 30px; text-align:center; color:var(--muted); font-size:13px}
+  @media(max-width:640px){ .hero h1{font-size:30px} .search-row{flex-direction:column} }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-inner">
+    <div class="brand"><span class="badge-dot">✓</span><span>Rozgar</span></div>
+    <nav class="tabs">
+      <button id="tabJobs" class="active" data-i18n="tab_jobs">Find Jobs</button>
+      <button id="tabApps" data-i18n="tab_apps">My Applications</button>
+    </nav>
+    <button class="lang-toggle" id="langToggle">اردو</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1 data-i18n="hero_title">Real jobs. Real salaries. Zero scams.</h1>
+    <p data-i18n="hero_sub">Every employer verified. Every listing shows the true PKR salary upfront. Apply in one tap and track your application all the way to the interview.</p>
+    <div class="trust">
+      <span data-i18n="trust1">✓ 100% verified employers</span>
+      <span data-i18n="trust2">✓ Real PKR salaries upfront</span>
+      <span data-i18n="trust3">✓ Urdu + English</span>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+  <!-- JOBS VIEW -->
+  <div id="jobsView">
+    <div class="panel">
+      <div class="search-row">
+        <input id="q" type="text" data-i18n-ph="search_ph" placeholder="Search jobs, companies…">
+      </div>
+      <div class="chip-row" id="cityRow"><span class="lbl" data-i18n="lbl_city">City</span></div>
+      <div class="chip-row" id="catRow"><span class="lbl" data-i18n="lbl_cat">Category</span></div>
+      <div class="chip-row" id="salRow"><span class="lbl" data-i18n="lbl_sal">Monthly salary</span></div>
+    </div>
+    <div class="results-meta">
+      <h2><span id="count">0</span> <span data-i18n="jobs_found">verified jobs</span></h2>
+    </div>
+    <div class="grid" id="jobGrid"></div>
+  </div>
+
+  <!-- TRACKER VIEW -->
+  <div id="appsView" style="display:none">
+    <div class="panel">
+      <h2 data-i18n="tracker_title">Application Tracker</h2>
+      <p style="color:var(--muted);font-size:14px" data-i18n="tracker_sub">Stages advance automatically as employers respond — no more black holes.</p>
+    </div>
+    <div id="appList"></div>
+    <div class="tips" id="tipsCard" style="display:none">
+      <h3 data-i18n="tips_h">💡 Interview tips</h3>
+      <ul>
+        <li data-i18n="tip1">Research the company — know what they sell and who their customers are.</li>
+        <li data-i18n="tip2">Prepare one story about a problem you solved, in your own words.</li>
+        <li data-i18n="tip3">Ask about the salary IN the interview — on Rozgar it's already listed, so confirm it.</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<!-- JOB DETAIL MODAL -->
+<div class="overlay" id="detailOverlay">
+  <div class="modal">
+    <button class="x" data-close="detailOverlay">×</button>
+    <div id="detailBody"></div>
+  </div>
+</div>
+
+<!-- APPLY WIZARD MODAL -->
+<div class="overlay" id="applyOverlay">
+  <div class="modal">
+    <button class="x" data-close="applyOverlay">×</button>
+    <h2><span data-i18n="apply_for">Apply for</span> <span id="applyJobTitle"></span></h2>
+    <div class="sub" id="applyJobCo"></div>
+    <div class="steps" id="wizardSteps"></div>
+    <div id="wizardBody"></div>
+    <div class="wizard-nav">
+      <button class="btn btn-ghost" id="wizBack" data-i18n="back">Back</button>
+      <button class="btn btn-primary" id="wizNext" data-i18n="next">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCAM REPORT MODAL -->
+<div class="overlay" id="scamOverlay">
+  <div class="modal">
+    <button class="x" data-close="scamOverlay">×</button>
+    <h2 data-i18n="scam_h">Report this listing</h2>
+    <div class="sub" data-i18n="scam_sub">Our trust team reviews every report within 24 hours. Fake listings get the employer banned.</div>
+    <div class="field">
+      <label data-i18n="scam_why">What's wrong?</label>
+      <select id="scamReason">
+        <option data-i18n="sr1">Asking for registration / advance fee</option>
+        <option data-i18n="sr2">Salary in ad doesn't match reality</option>
+        <option data-i18n="sr3">Fake company / impersonation</option>
+        <option data-i18n="sr4">Inappropriate content</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-block" id="scamSubmit" data-i18n="scam_btn">Submit report</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<footer data-i18n="footer">Rozgar — UX concept demo · Every employer verified · Made for Pakistan's job seekers</footer>
+
+<script>
+"use strict";
+/* ============ DATA ============ */
+const CITIES = ["Lahore","Karachi","Peshawar","Islamabad"];
+const CITY_UR = {"Lahore":"لاہور","Karachi":"کراچی","Peshawar":"پشاور","Islamabad":"اسلام آباد"};
+const CATS = ["Delivery","Teaching","Office","Daily Wage","Tech","Retail","Healthcare"];
+const CAT_UR = {"Delivery":"ڈیلیوری","Teaching":"تدریس","Office":"دفتر","Daily Wage":"دیہاڑی دار","Tech":"ٹیکنالوجی","Retail":"ریٹیل","Healthcare":"صحت"};
+const SAL_BANDS = [
+  {id:"any",  min:0,      max:Infinity},
+  {id:"u30",  min:0,      max:30000},
+  {id:"3060", min:30000,  max:60000},
+  {id:"60100",min:60000,  max:100000},
+  {id:"100p", min:100000, max:Infinity},
+];
+const STAGES = ["submitted","viewed","shortlisted","interview"];
+
+const JOBS = [
+ {id:1, title:"Delivery Rider", title_ur:"ڈیلیوری رائیڈر", co:"TCS", city:"Lahore", cat:"Delivery",
+  salary:35000, type:"Full-time", shift:"Morning shift", onsite:"On-site",
+  desc:"Deliver parcels across Lahore on company-provided motorbike. Fuel allowance included.",
+  req:["Valid motorcycle licence","Smartphone with 4G","Know Lahore routes"]},
+ {id:2, title:"Female Teacher (Primary)", title_ur:"پرائمری ٹیچر (خاتون)", co:"Beaconhouse School System", city:"Lahore", cat:"Teaching",
+  salary:45000, type:"Full-time", shift:"Morning shift", onsite:"On-site",
+  desc:"Teach Class 1–3 at our DHA campus. Training provided for fresh graduates.",
+  req:["Bachelor's degree (any subject)","Good spoken Urdu & basic English","Love working with kids"]},
+ {id:3, title:"Junior Graphic Designer", title_ur:"جونیئر گرافک ڈیزائنر", co:"Packages Group", city:"Lahore", cat:"Office",
+  salary:60000, type:"Full-time", shift:"Morning shift", onsite:"On-site",
+  desc:"Design packaging and social media creatives with our senior design team.",
+  req:["Portfolio of 5+ pieces","Figma or Photoshop basics","1 year experience preferred"]},
+ {id:4, title:"Cashier", title_ur:"کیشیئر", co:"Metro Online", city:"Karachi", cat:"Retail",
+  salary:40000, type:"Full-time", shift:"Evening shift", onsite:"On-site",
+  desc:"Handle billing counters at our Gulshan branch. Weekly off on rotation.",
+  req:["Intermediate (FA/FSc)","Basic computer use","Honest & punctual"]},
+ {id:5, title:"Customer Support Agent (Urdu)", title_ur:"کسٹمر سپورٹ ایجنٹ", co:"Jazz", city:"Islamabad", cat:"Office",
+  salary:55000, type:"Full-time", shift:"Rotational", onsite:"Hybrid",
+  desc:"Support Jazz customers in Urdu over phone and chat from our Islamabad hub.",
+  req:["Fluent Urdu, basic English","Clear speaking voice","Fresher welcome"]},
+ {id:6, title:"Motorcycle Mechanic", title_ur:"موٹر سائیکل مکینک", co:"Honda Atlas Service Center", city:"Peshawar", cat:"Daily Wage",
+  salary:38000, type:"Full-time", shift:"Morning shift", onsite:"On-site",
+  desc:"Repair and service motorcycles at our University Road service center.",
+  req:["2 years workshop experience","Own basic tools a plus","Can read job cards"]},
+ {id:7, title:"Frontend Developer (React)", title_ur:"فرنٹ اینڈ ڈیولپر", co:"Systems Ltd", city:"Karachi", cat:"Tech",
+  salary:120000, type:"Full-time", shift:"Flexible", onsite:"Remote",
+  desc:"Build customer dashboards in React for our banking clients. Fully remote.",
+  req:["2+ years React","REST API experience","Git workflow"]},
+ {id:8, title:"Warehouse Helper", title_ur:"ویئر ہاؤس ہیلپر", co:"Daraz", city:"Karachi", cat:"Daily Wage",
+  salary:32000, type:"Full-time", shift:"Night shift", onsite:"On-site",
+  desc:"Pick, pack and sort parcels at the Daraz fulfilment center, Korangi.",
+  req:["Physically fit","CNIC required","Night shift willingness"]},
+ {id:9, title:"Staff Nurse", title_ur:"اسٹاف نرس", co:"Shaukat Khanum Hospital", city:"Lahore", cat:"Healthcare",
+  salary:70000, type:"Full-time", shift:"Rotational", onsite:"On-site",
+  desc:"Provide inpatient care in the oncology ward. Hostel available for outstation staff.",
+  req:["Nursing diploma + PNC registration","1 year ward experience","Compassionate care"]},
+ {id:10, title:"Sales Executive", title_ur:"سیلز ایگزیکٹو", co:"Engro Foods", city:"Islamabad", cat:"Office",
+  salary:65000, type:"Full-time", shift:"Morning shift", onsite:"On-site",
+  desc:"Grow retail distribution of Olper's in the Islamabad region. Bike provided.",
+  req:["Bachelor's degree","Motorcycle licence","Target-driven"]},
+ {id:11, title:"Data Entry Operator (Remote)", title_ur:"ڈیٹا انٹری آپریٹر", co:"Careem", city:"Karachi", cat:"Tech",
+  salary:50000, type:"Part-time", shift:"Flexible", onsite:"Remote",
+  desc:"Enter captain onboarding data from home. Laptop and internet required.",
+  req:["Typing 40+ wpm","Laptop + stable internet","Attention to detail"]},
+ {id:12, title:"Security Guard", title_ur:"سیکیورٹی گارڈ", co:"Fauji Security Services", city:"Peshawar", cat:"Daily Wage",
+  salary:36000, type:"Full-time", shift:"Night shift", onsite:"On-site",
+  desc:"Guard bank branches in Peshawar. Uniform and training provided.",
+  req:["Height 5'8\"+","Ex-serviceman preferred","CNIC required"]},
+ {id:13, title:"Master Tailor", title_ur:"ماسٹر درزی", co:"Gul Ahmed", city:"Karachi", cat:"Daily Wage",
+  salary:48000, type:"Full-time", shift:"Morning shift", onsite:"On-site",
+  desc:"Stitch premium lawn suits at our SITE factory unit. Overtime paid separately.",
+  req:["5 years stitching experience","Can cut from patterns","Quality finishing"]},
+ {id:14, title:"Office Assistant", title_ur:"آفس اسسٹنٹ", co:"Packages Group", city:"Lahore", cat:"Daily Wage",
+  salary:28000, type:"Full-time", shift:"Morning shift", onsite:"On-site",
+  desc:"Support office operations at our Lahore head office — filing, tea service, errands.",
+  req:["Middle pass or above","Punctual and trustworthy","Lives near Shahrah-e-Quaid-e-Azam"]},
+ {id:15, title:"Car Driver", title_ur:"کار ڈرائیور", co:"Careem", city:"Karachi", cat:"Delivery",
+  salary:42000, type:"Full-time", shift:"Flexible", onsite:"On-site",
+  desc:"Drive for Careem in Karachi with your own car. Weekly payments, fuel bonus on targets.",
+  req:["Valid driving licence","Own car (2015 or newer)","Smartphone with 4G"]},
+ {id:16, title:"Security Guard", title_ur:"سیکیورٹی گارڈ", co:"Askari Guards", city:"Islamabad", cat:"Daily Wage",
+  salary:32000, type:"Full-time", shift:"Night shift", onsite:"On-site",
+  desc:"Guard a commercial plaza in Blue Area. Uniform and meals provided by company.",
+  req:["Physically fit","CNIC verified","Prior experience preferred"]},
+ {id:17, title:"Cook (Desi Food)", title_ur:"باورچی (دیسی کھانے)", co:"Lahore Darbar Restaurant", city:"Lahore", cat:"Daily Wage",
+  salary:45000, type:"Full-time", shift:"Evening shift", onsite:"On-site",
+  desc:"Cook desi dishes at our busy Fortress Stadium branch. Two meals a day included.",
+  req:["3 years desi cooking experience","Can handle rush hours","Food hygiene awareness"]},
+ {id:18, title:"Lady Tailor", title_ur:"لیڈی ٹیلر", co:"Gul Ahmed Ideas", city:"Faisalabad", cat:"Retail",
+  salary:36000, type:"Full-time", shift:"Morning shift", onsite:"On-site",
+  desc:"Stitch ladies' suits at our Faisalabad outlet. Piece-rate bonus on extra orders.",
+  req:["Expert in ladies stitching","Own machine a plus","Can meet Eid-season deadlines"]},
+];
+
+/* ============ I18N ============ */
+const I18N = {
+ en:{
+  tab_jobs:"Find Jobs", tab_apps:"My Applications",
+  hero_title:"Real jobs. Real salaries. Zero scams.",
+  hero_sub:"Every employer verified. Every listing shows the true PKR salary upfront. Apply in one tap and track your application all the way to the interview.",
+  trust1:"✓ 100% verified employers", trust2:"✓ Real PKR salaries upfront", trust3:"✓ Urdu + English",
+  search_ph:"Search jobs, companies…", lbl_city:"City", lbl_cat:"Category", lbl_sal:"Monthly salary",
+  jobs_found:"verified jobs", all:"All",
+  band_any:"Any", band_u30:"Under Rs 30k", band_3060:"Rs 30k–60k", band_60100:"Rs 60k–100k", band_100p:"Rs 100k+",
+  verified:"Verified ✓", per_month:"/month", details:"Details", apply:"Apply",
+  apply_for:"Apply for", back:"Back", next:"Next", submit:"Submit application",
+  s1_name:"Full name", s1_phone:"Phone number", s1_city:"Your city",
+  s2_exp:"Experience", s2_skills:"Skills (comma separated)", s2_expected:"Expected monthly salary (Rs)",
+  exp0:"Fresher", exp1:"1–2 years", exp2:"3–5 years", exp3:"5+ years",
+  review:"Review your application", submit_done:"Application submitted! Track it under My Applications.",
+  fill_req:"Please fill your name and phone number.",
+  tracker_title:"Application Tracker", tracker_sub:"Stages advance automatically as employers respond — no more black holes.",
+  st_submitted:"Submitted", st_viewed:"Viewed", st_shortlisted:"Shortlisted", st_interview:"Interview",
+  applied:"Applied", no_apps:"No applications yet", no_apps_sub:"Find a verified job and apply in one tap.",
+  tips_h:"💡 Interview tips",
+  tip1:"Research the company — know what they sell and who their customers are.",
+  tip2:"Prepare one story about a problem you solved, in your own words.",
+  tip3:"Ask about the salary IN the interview — on Rozgar it's already listed, so confirm it.",
+  scam_h:"Report this listing", scam_sub:"Our trust team reviews every report within 24 hours. Fake listings get the employer banned.",
+  scam_why:"What's wrong?", scam_btn:"Submit report",
+  sr1:"Asking for registration / advance fee", sr2:"Salary in ad doesn't match reality",
+  sr3:"Fake company / impersonation", sr4:"Inappropriate content",
+  scam_done:"Report received. Thank you for keeping Rozgar scam-free.",
+  req_h:"Requirements", footer:"Rozgar — UX concept demo · Every employer verified · Made for Pakistan's job seekers",
+  verified_tip:"CNIC + business registry verified",
+  no_results:"No jobs found",
+  no_results_sub:"Try a different keyword or clear the filters.",
+ },
+ ur:{
+  tab_jobs:"نوکریاں تلاش کریں", tab_apps:"میری درخواستیں",
+  hero_title:"اصلی نوکریاں۔ اصل تنخواہیں۔ صفر دھوکہ۔",
+  hero_sub:"ہر آجر تصدیق شدہ۔ ہر اشتہار میں اصل تنخواہ پہلے سے درج۔ ایک ٹیپ میں درخواست دیں اور انٹرویو تک نظر رکھیں۔",
+  trust1:"✓ 100% تصدیق شدہ آجر", trust2:"✓ اصل تنخواہ پہلے سے درج", trust3:"✓ اردو + انگریزی",
+  search_ph:"نوکریاں، کمپنیاں تلاش کریں…", lbl_city:"شہر", lbl_cat:"قسم", lbl_sal:"ماہانہ تنخواہ",
+  jobs_found:"تصدیق شدہ نوکریاں", all:"تمام",
+  band_any:"کوئی بھی", band_u30:"30 ہزار سے کم", band_3060:"30–60 ہزار", band_60100:"60 ہزار–1 لاکھ", band_100p:"1 لاکھ سے زیادہ",
+  verified:"تصدیق شدہ ✓", per_month:"/ماہ", details:"تفصیل", apply:"درخواست دیں",
+  apply_for:"درخواست برائے", back:"پیچھے", next:"آگے", submit:"درخواست جمع کرائیں",
+  s1_name:"پورا نام", s1_phone:"فون نمبر", s1_city:"آپ کا شہر",
+  s2_exp:"تجربہ", s2_skills:"مہارتیں", s2_expected:"متوقع ماہانہ تنخواہ (روپے)",
+  exp0:"فریشر", exp1:"1–2 سال", exp2:"3–5 سال", exp3:"5+ سال",
+  review:"اپنی درخواست دیکھیں", submit_done:"درخواست جمع ہو گئی! میری درخواستوں میں نظر رکھیں۔",
+  fill_req:"براہ کرم نام اور فون نمبر لکھیں۔",
+  tracker_title:"درخواست ٹریکر", tracker_sub:"آجر کے جواب کے ساتھ مراحل خود بڑھتے ہیں — اب کوئی بلیک ہول نہیں۔",
+  st_submitted:"جمع شدہ", st_viewed:"دیکھی گئی", st_shortlisted:"شارٹ لسٹڈ", st_interview:"انٹرویو",
+  applied:"درخواست دی", no_apps:"ابھی کوئی درخواست نہیں", no_apps_sub:"تصدیق شدہ نوکری تلاش کریں اور ایک ٹیپ میں درخواست دیں۔",
+  tips_h:"💡 انٹرویو کے مشورے",
+  tip1:"کمپنی کے بارے میں جانیں — وہ کیا بیچتے ہیں اور گاہک کون ہیں۔",
+  tip2:"اپنے الفاظ میں ایک کہانی تیار کریں کہ آپ نے کوئی مسئلہ کیسے حل کیا۔",
+  tip3:"انٹرویو میں تنخواہ ضرور پوچھیں — روزگار پر یہ پہلے سے درج ہوتی ہے، تصدیق کر لیں۔",
+  scam_h:"اس اشتہار کی رپورٹ", scam_sub:"ہماری ٹیم ہر رپورٹ 24 گھنٹوں میں دیکھتی ہے۔ جعلی اشتہار پر آجر بین ہو جاتا ہے۔",
+  scam_why:"مسئلہ کیا ہے؟", scam_btn:"رپورٹ جمع کرائیں",
+  sr1:"رجسٹریشن / ایڈوانس فیس مانگ رہا ہے", sr2:"اشتہار کی تنخواہ اصل سے مختلف ہے",
+  sr3:"جعلی کمپنی", sr4:"نامناسب مواد",
+  scam_done:"رپورٹ موصول ہو گئی۔ روزگار کو دھوکے سے پاک رکھنے کا شکریہ۔",
+  req_h:"شرائط", footer:"روزگار — یو ایکس کانسیپٹ ڈیمو · ہر آجر تصدیق شدہ · پاکستان کے نوجوانوں کے لیے",
+  verified_tip:"شناختی کارڈ + بزنس رجسٹری سے تصدیق شدہ",
+  no_results:"کوئی نوکری نہیں ملی",
+  no_results_sub:"کوئی اور لفظ آزمائیں یا فلٹر صاف کریں۔",
+ }
+};
+
+/* ============ STATE ============ */
+let lang = "en";
+let filters = {q:"", city:"All", cat:"All", band:"any"};
+let applyJob = null, wizStep = 0;
+let wizardData = {};
+
+const t = k => (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k;
+const $ = id => document.getElementById(id);
+const fmtRs = n => "Rs " + n.toLocaleString("en-PK");
+
+function toast(msg){
+  const el = $("toast"); el.textContent = msg; el.classList.add("show");
+  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove("show"), 2600);
+}
+function getApps(){
+  try { return JSON.parse(localStorage.getItem("rozgar_apps") || "[]"); }
+  catch(e){ return []; }
+}
+function saveApps(a){ localStorage.setItem("rozgar_apps", JSON.stringify(a)); }
+/* stage advances with real elapsed time: +1 stage per 6 hours, capped at interview */
+function stageOf(app){
+  const hours = (Date.now() - app.appliedAt) / 36e5;
+  return Math.min(3, Math.floor(hours / 6));
+}
+
+/* ============ RENDER: FILTERS ============ */
+function chipRow(elId, items, current, onPick, labelOf){
+  const row = $(elId);
+  row.querySelectorAll(".chip").forEach(c=>c.remove());
+  const mk = (val,label)=>{
+    const b = document.createElement("button");
+    b.className = "chip" + (current===val ? " active" : "");
+    b.textContent = label;
+    b.onclick = ()=>onPick(val);
+    row.appendChild(b);
+  };
+  mk("All", t("all"));
+  items.forEach(v=>mk(v, labelOf ? labelOf(v) : v));
+}
+function renderFilters(){
+  chipRow("cityRow", CITIES, filters.city, v=>{filters.city=v; renderFilters(); renderJobs();},
+    v => lang==="ur" ? CITY_UR[v] : v);
+  chipRow("catRow", CATS, filters.cat, v=>{filters.cat=v; renderFilters(); renderJobs();},
+    v => lang==="ur" ? CAT_UR[v] : v);
+  chipRow("salRow", SAL_BANDS.map(b=>b.id), filters.band,
+    v=>{filters.band=v; renderFilters(); renderJobs();}, v=>t("band_"+v));
+}
+
+/* ============ RENDER: JOB CARDS ============ */
+function jobTitle(j){ return lang==="ur" ? j.title_ur : j.title; }
+function jobMatches(j){
+  const band = SAL_BANDS.find(b=>b.id===filters.band);
+  const q = filters.q.trim().toLowerCase();
+  const hay = (j.title+" "+j.title_ur+" "+j.co+" "+j.city).toLowerCase();
+  return (filters.city==="All" || j.city===filters.city)
+      && (filters.cat==="All" || j.cat===filters.cat)
+      && j.salary>=band.min && j.salary<band.max
+      && (!q || hay.includes(q));
+}
+function renderJobs(){
+  const list = JOBS.filter(jobMatches);
+  $("count").textContent = list.length;
+  const grid = $("jobGrid");
+  grid.innerHTML = "";
+  if(list.length===0){
+    grid.innerHTML = '<div class="empty"><div class="big">🔍</div><h3>'+t("no_results")+'</h3><p>'+t("no_results_sub")+'</p></div>';
+    return;
+  }
+  list.forEach(j=>{
+    const d = document.createElement("div");
+    d.className = "job";
+    d.innerHTML =
+      '<div class="co">'+j.co+' · '+(lang==="ur"?CITY_UR[j.city]:j.city)+'</div>'+
+      '<h3>'+jobTitle(j)+'</h3>'+
+      '<div><span class="vbadge" title="'+t("verified_tip")+'">'+t("verified")+'</span></div>'+
+      '<div class="salary">'+fmtRs(j.salary)+'<small>'+t("per_month")+'</small></div>'+
+      '<div class="tags"><span class="tag">'+j.type+'</span><span class="tag">'+j.onsite+
+      '</span><span class="tag">'+j.shift+'</span></div>'+
+      '<div class="actions"><button class="btn btn-ghost" data-act="detail">'+t("details")+
+      '</button><button class="btn btn-primary" data-act="apply" style="flex:1">'+t("apply")+'</button></div>';
+    d.querySelector('[data-act="detail"]').onclick = ()=>openDetail(j.id);
+    d.querySelector('[data-act="apply"]').onclick = ()=>openApply(j.id);
+    grid.appendChild(d);
+  });
+}
+
+/* ============ DETAIL MODAL ============ */
+function openDetail(id){
+  const j = JOBS.find(x=>x.id===id);
+  $("detailBody").innerHTML =
+    '<div class="co" style="margin-bottom:4px">'+j.co+' · '+(lang==="ur"?CITY_UR[j.city]:j.city)+'</div>'+
+    '<h2>'+jobTitle(j)+'</h2>'+
+    '<div style="margin:8px 0"><span class="vbadge" title="'+t("verified_tip")+'">'+t("verified")+'</span></div>'+
+    '<div class="salary" style="font-size:26px">'+fmtRs(j.salary)+'<small>'+t("per_month")+'</small></div>'+
+    '<div class="tags" style="margin:12px 0"><span class="tag">'+j.type+'</span><span class="tag">'+
+    j.onsite+'</span><span class="tag">'+j.shift+'</span><span class="tag">'+
+    (lang==="ur"?CAT_UR[j.cat]:j.cat)+'</span></div>'+
+    '<p style="margin-bottom:6px">'+j.desc+'</p>'+
+    '<strong>'+t("req_h")+':</strong><ul class="req">'+j.req.map(r=>'<li>'+r+'</li>').join("")+'</ul>'+
+    '<button class="btn btn-primary btn-block" id="detailApply">'+t("apply")+'</button>'+
+    '<button class="scam-link" id="detailScam">Report scam</button>';
+  $("detailApply").onclick = ()=>{ closeOv("detailOverlay"); openApply(j.id); };
+  $("detailScam").onclick = ()=>openOv("scamOverlay");
+  openOv("detailOverlay");
+}
+
+/* ============ APPLY WIZARD ============ */
+function openApply(id){
+  applyJob = JOBS.find(x=>x.id===id);
+  wizStep = 0; wizardData = {};
+  $("applyJobTitle").textContent = jobTitle(applyJob);
+  $("applyJobCo").textContent = applyJob.co+" · "+fmtRs(applyJob.salary)+t("per_month");
+  renderWizard();
+  openOv("applyOverlay");
+}
+function renderWizard(){
+  const steps = ["1","2","3"];
+  $("wizardSteps").innerHTML = steps.map((s,i)=>
+    '<div class="step'+(i<wizStep?" done":i===wizStep?" done":"")+'">'+(lang==="ur"?
+      ["پروفائل","تجربہ","جائزہ"][i]:["Profile","Experience","Review"][i])+'</div>').join("");
+  const b = $("wizardBody");
+  if(wizStep===0){
+    b.innerHTML =
+      '<div class="field"><label>'+t("s1_name")+'</label><input id="w_name" value="'+(wizardData.name||"")+'"></div>'+
+      '<div class="field"><label>'+t("s1_phone")+'</label><input id="w_phone" inputmode="tel" placeholder="03xx xxxxxxx" value="'+(wizardData.phone||"")+'"></div>'+
+      '<div class="field"><label>'+t("s1_city")+'</label><select id="w_city">'+CITIES.map(c=>
+        '<option'+(wizardData.city===c?" selected":"")+'>'+c+'</option>').join("")+'</select></div>';
+  }else if(wizStep===1){
+    b.innerHTML =
+      '<div class="field"><label>'+t("s2_exp")+'</label><select id="w_exp">'+
+      ["exp0","exp1","exp2","exp3"].map(k=>'<option value="'+t(k)+'"'+(wizardData.exp===t(k)?" selected":"")+'>'+t(k)+'</option>').join("")+'</select></div>'+
+      '<div class="field"><label>'+t("s2_skills")+'</label><input id="w_skills" value="'+(wizardData.skills||"")+'"></div>'+
+      '<div class="field"><label>'+t("s2_expected")+'</label><input id="w_expected" inputmode="numeric" value="'+(wizardData.expected||"")+'"></div>';
+  }else{
+    b.innerHTML = '<div class="review-box"><div><strong>'+t("review")+'</strong></div>'+
+      '<div>'+t("s1_name")+': '+(wizardData.name||"—")+'</div>'+
+      '<div>'+t("s1_phone")+': '+(wizardData.phone||"—")+'</div>'+
+      '<div>'+t("s2_exp")+': '+(wizardData.exp||"—")+'</div>'+
+      '<div>'+t("s2_expected")+': '+(wizardData.expected?fmtRs(+wizardData.expected):"—")+'</div></div>';
+  }
+  $("wizBack").style.visibility = wizStep===0 ? "hidden" : "visible";
+  $("wizNext").textContent = wizStep===2 ? t("submit") : t("next");
+}
+function collectStep(){
+  if(wizStep===0){
+    wizardData.name = $("w_name").value.trim();
+    wizardData.phone = $("w_phone").value.trim();
+    wizardData.city = $("w_city").value;
+    if(!wizardData.name || !wizardData.phone){ toast(t("fill_req")); return false; }
+  }else if(wizStep===1){
+    wizardData.exp = $("w_exp").value;
+    wizardData.skills = $("w_skills").value.trim();
+    wizardData.expected = $("w_expected").value.trim();
+  }
+  return true;
+}
+$("wizNext").onclick = ()=>{
+  if(!collectStep()) return;
+  if(wizStep<2){ wizStep++; renderWizard(); }
+  else{
+    const apps = getApps();
+    apps.unshift({jobId:applyJob.id, appliedAt:Date.now(), name:wizardData.name});
+    saveApps(apps);
+    closeOv("applyOverlay");
+    toast(t("submit_done"));
+    switchTab("apps");
+  }
+};
+$("wizBack").onclick = ()=>{ if(wizStep>0){ wizStep--; renderWizard(); } };
+
+/* ============ TRACKER ============ */
+function renderApps(){
+  const apps = getApps();
+  const list = $("appList");
+  list.innerHTML = "";
+  let showTips = false;
+  if(!apps.length){
+    list.innerHTML = '<div class="empty"><div class="big">📭</div><h3>'+t("no_apps")+
+      '</h3><p>'+t("no_apps_sub")+'</p></div>';
+  }
+  apps.forEach(a=>{
+    const j = JOBS.find(x=>x.id===a.jobId); if(!j) return;
+    const st = stageOf(a);
+    if(st>=2) showTips = true;
+    const d = document.createElement("div");
+    d.className = "app-card";
+    d.innerHTML =
+      '<div class="head"><div><strong>'+jobTitle(j)+'</strong><div class="co">'+j.co+
+      ' · '+(lang==="ur"?CITY_UR[j.city]:j.city)+' · '+fmtRs(j.salary)+t("per_month")+'</div></div>'+
+      '<span class="status-pill">'+t("st_"+STAGES[st])+'</span></div>'+
+      '<div class="pipeline">'+STAGES.map((s,i)=>
+        '<div class="pstage'+(i<st?" done":i===st?" current":"")+'"><div class="dot">'+
+        (i<st?"✓":(i+1))+'</div>'+t("st_"+s)+'</div>').join("")+'</div>'+
+      '<div class="co">'+t("applied")+': '+new Date(a.appliedAt).toLocaleDateString()+'</div>';
+    list.appendChild(d);
+  });
+  $("tipsCard").style.display = showTips ? "block" : "none";
+}
+
+/* ============ MODAL HELPERS / TABS / LANG ============ */
+function openOv(id){ $(id).classList.add("open"); }
+function closeOv(id){ $(id).classList.remove("open"); }
+document.querySelectorAll("[data-close]").forEach(b=> b.onclick=()=>closeOv(b.dataset.close));
+document.querySelectorAll(".overlay").forEach(o=> o.addEventListener("click", e=>{ if(e.target===o) o.classList.remove("open"); }));
+$("scamSubmit").onclick = ()=>{ closeOv("scamOverlay"); toast(t("scam_done")); };
+
+function switchTab(which){
+  const jobs = which==="jobs";
+  $("jobsView").style.display = jobs ? "block" : "none";
+  $("appsView").style.display = jobs ? "none" : "block";
+  $("tabJobs").classList.toggle("active", jobs);
+  $("tabApps").classList.toggle("active", !jobs);
+  if(!jobs) renderApps();
+}
+$("tabJobs").onclick = ()=>switchTab("jobs");
+$("tabApps").onclick = ()=>switchTab("apps");
+
+function applyI18n(){
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>{ el.placeholder = t(el.dataset.i18nPh); });
+  document.documentElement.lang = lang;
+  document.body.classList.toggle("urdu", lang==="ur");
+  $("langToggle").textContent = lang==="ur" ? "EN" : "اردو";
+}
+$("langToggle").onclick = ()=>{
+  lang = lang==="en" ? "ur" : "en";
+  applyI18n(); renderFilters(); renderJobs();
+  if($("appsView").style.display!=="none") renderApps();
+};
+$("q").addEventListener("input", e=>{ filters.q = e.target.value; renderJobs(); });
+
+/* ============ INIT ============ */
+applyI18n(); renderFilters(); renderJobs();
+</script>
+</body>
+</html>
